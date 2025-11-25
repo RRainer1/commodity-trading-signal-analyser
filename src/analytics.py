@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-
+# Computes technical indicators and trading signals for stocks/commodities
 class Analyse_patterns:
     def __init__(self, prices: pd.DataFrame):
         df = prices.sort_values("date").copy()
