@@ -1,18 +1,16 @@
-from fontTools.misc.plistlib import end_date
-
 from fetchData import fetch_Data
 from analytics import Analyse_patterns
 import matplotlib.pyplot as plt
 
 Commodity_symbols = ["CL=F", "NG=F", "GC=F"]
 
-graph_Start = "2024-07-01"
 data_Start = "2024-03-01"
+graph_Start = "2024-07-01"
 data_End = "2025-01-15"
 
 
 
-def symbol_analysis(symbol: str) -> None:
+def symbol_analysis(symbol: str, atr_threshold=0.8, show_plot: bool = True):
     fd = fetch_Data()
     df = fd.getData(stock_symbol=symbol, start_date=data_Start, end_date=data_End)
     analyser = Analyse_patterns(df)
@@ -26,13 +24,12 @@ def symbol_analysis(symbol: str) -> None:
     annual_return = analyser.annualised_Returns(start_date=graph_Start)
     sharpe = analyser.raw_sharpe_ratio(start_date=graph_Start)
     analyser.average_true_range(14)
-    analyser.atr_regime_signal(atr_period=14, regime_window=50, calm_threshold=0.8)
+    analyser.atr_regime_signal(atr_period=14, regime_window=50, calm_threshold=atr_threshold)
 
     ##data stats being plotted from graph_start
     visible = analyser.prices.loc[analyser.prices.index >= graph_Start]
 
-    print(analyser.prices[
-              ["close", "movingAverage_20", "movingAverage_50", "rsi_14", "volatility_20", "annualized_vol_20"]].tail())
+    print(analyser.prices[["close", "movingAverage_20", "movingAverage_50", "rsi_14", "volatility_20", "annualized_vol_20"]].tail())
 
     fig, axes = plt.subplots(4, 1, figsize=(10, 12), sharex=True)
 
@@ -82,14 +79,16 @@ def symbol_analysis(symbol: str) -> None:
     axes[3].set_ylabel("ATR")
     axes[3].set_xlabel("Date")
 
+
+
     plt.tight_layout()
-    plt.show()
+    if show_plot:
+        plt.show()
+        print(f"Annualised Return: {annual_return:.4f}")
+        print(f"Sharpe Ratio: {sharpe:.4f}")
 
-    print(f"Annualised Return: {annual_return:.4f}")
-    print(f"Sharpe Ratio: {sharpe:.4f}")
 
-
-
+    return fig, annual_return, sharpe
 
 
 
